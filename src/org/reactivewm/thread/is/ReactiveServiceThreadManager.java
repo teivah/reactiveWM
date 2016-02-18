@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.wm.app.b2b.server.Service;
 import com.wm.app.b2b.server.ServiceThread;
 import com.wm.app.b2b.server.Session;
@@ -193,10 +194,16 @@ public class ReactiveServiceThreadManager {
 			if (current >= max) {
 				throw new TimeoutException("Timeout exception");
 			}
-
+			
 			try {
 				Futures.get(future, max - current, TimeUnit.MILLISECONDS,
 						ExecutionException.class);
+			} catch(UncheckedExecutionException e) {
+				if(e.getCause() instanceof NullPointerException) {
+					throw new ThreadException("IS pool is full");
+				} else {
+					throw e;
+				}
 			} catch (ExecutionException e) {
 				if (e.getCause() instanceof TimeoutException) {
 					for (Future<IData> f : futures) {

@@ -39,7 +39,7 @@ public class ReactiveServiceThread extends ServiceThread {
 						ThreadManager.getThreadManagerImpl().interrupt(id);
 					} else {
 						try {
-							Thread.sleep(1000);
+							Thread.sleep(2500);
 						} catch (InterruptedException e) {
 						}
 						if (id != null) {

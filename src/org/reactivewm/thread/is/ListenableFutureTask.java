@@ -1,5 +1,6 @@
 package org.reactivewm.thread.is;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.FutureTask;
 
@@ -45,6 +46,11 @@ public class ListenableFutureTask<V> extends FutureTask<V> implements
 	@Override
 	public boolean isDone() {
 		return done;
+	}
+	
+	@Override
+	public V get() throws InterruptedException, ExecutionException {
+		return super.get();
 	}
 	
 	@Override
