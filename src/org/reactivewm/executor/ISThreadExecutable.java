@@ -17,22 +17,12 @@ public class ISThreadExecutable implements ThreadExecutable {
 		ListenableFutureTask<IData> ft = (ListenableFutureTask<IData>) task;
 		if (!ft.isController()) {
 			try {
-
 				ReactiveServiceThread ast = (ReactiveServiceThread) ft.getRunnable();
 				if (!ast.isCancelled()) {
 					ServiceThread st = (ServiceThread) ft.getRunnable();
 					String id = ThreadManager.getThreadManagerImpl().runTarget(st, THREAD_ALLOCATION_TIMEOUT);
 					ast.setId(id);
-					try {
-						ft.set(st.getIData());
-					} catch (NullPointerException e) {
-						Thread.sleep(2500);
-						try {
-							ft.set(st.getIData());
-						} catch (Exception e2) {
-							throw e2;
-						}
-					}
+					ft.set(st.getIData());
 				} else {
 					ft.set(null);
 				}

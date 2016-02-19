@@ -198,12 +198,6 @@ public class ReactiveServiceThreadManager {
 			try {
 				Futures.get(future, max - current, TimeUnit.MILLISECONDS,
 						ExecutionException.class);
-			} catch(UncheckedExecutionException e) {
-				if(e.getCause() instanceof NullPointerException) {
-					throw new ThreadException("IS pool is full");
-				} else {
-					throw e;
-				}
 			} catch (ExecutionException e) {
 				if (e.getCause() instanceof TimeoutException) {
 					for (Future<IData> f : futures) {
