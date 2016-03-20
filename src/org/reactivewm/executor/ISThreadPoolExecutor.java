@@ -1133,7 +1133,7 @@ public class ISThreadPoolExecutor extends AbstractExecutorService {
                     Throwable thrown = null;
                     try {
                     	/* reactiveWM: change start */
-                    	executable.execute(task);
+                    	executable.execute(task, this.poolName);
                         /* reactiveWM: change stop */
                     } catch (RuntimeException x) {
                         thrown = x; throw x;
@@ -1216,7 +1216,7 @@ public class ISThreadPoolExecutor extends AbstractExecutorService {
      * @throws NullPointerException if {@code workQueue}
      *         or {@code threadFactory} is null
      */
-    public ISThreadPoolExecutor(int corePoolSize,
+    public ISThreadPoolExecutor(String poolName, int corePoolSize,
                               int maximumPoolSize,
                               long keepAliveTime,
                               TimeUnit unit,
@@ -1224,7 +1224,9 @@ public class ISThreadPoolExecutor extends AbstractExecutorService {
                               ThreadFactory threadFactory, ThreadExecutable executable) {
         this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
              threadFactory, defaultHandler, executable);
+        this.poolName = poolName;
     }
+    private String poolName;
 
     /**
      * Creates a new {@code ThreadPoolExecutor} with the given initial

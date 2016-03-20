@@ -26,8 +26,8 @@ public class FailureCallback<V> implements FutureCallback<IData> {
 	private String session;
 	private boolean interruptable;
 
-	public FailureCallback(ISThreadPoolExecutor executor, String service,
-			IData input, int threadPriority, String session, boolean interruptable) {
+	public FailureCallback(ISThreadPoolExecutor executor, String service, IData input, int threadPriority,
+			String session, boolean interruptable) {
 		this.executor = executor;
 		this.service = service;
 		this.threadPriority = threadPriority;
@@ -38,40 +38,41 @@ public class FailureCallback<V> implements FutureCallback<IData> {
 
 	@Override
 	public void onFailure(Throwable arg0) {
-		ReactiveServiceThreadManager manager = ReactiveServiceThreadManager
-				.getInstance();
+		ReactiveServiceThreadManager manager = ReactiveServiceThreadManager.getInstance();
 		try {
-			
+			if (input == null) {
+				input = IDataFactory.create();
+			}
 			IDataCursor inputCur = input.getCursor();
-			
+
 			IData lastError = IDataFactory.create();
 			IDataUtil.put(inputCur, "lastError", lastError);
 			IDataCursor lastErrorCur = lastError.getCursor();
-			
+
 			IDataUtil.put(lastErrorCur, "error", arg0.getMessage());
 			IDataUtil.put(lastErrorCur, "errorType", arg0.getClass());
-			
+
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
 			arg0.printStackTrace(pw);
 			IDataUtil.put(lastErrorCur, "errorDump", sw.toString());
 			sw.close();
 			pw.close();
-			
+
 			lastErrorCur.destroy();
 			inputCur.destroy();
-			
-			
-			ServiceThread st = manager.createServiceThread(service, input, SessionManager.create().getSession(session), threadPriority, interruptable);
+
+			ServiceThread st = manager.createServiceThread(service, input, SessionManager.create().getSession(session),
+					threadPriority, interruptable);
+
 			manager.submit(executor, st);
 		} catch (Exception e) {
-			LOG.log(Level.ERROR,
-					"Error while adding executing failure callback: "
-							+ e.getMessage());
+			LOG.log(Level.ERROR, "Error while adding executing failure callback: " + e);
 		}
 	}
 
 	@Override
 	public void onSuccess(IData arg0) {
+
 	}
 }

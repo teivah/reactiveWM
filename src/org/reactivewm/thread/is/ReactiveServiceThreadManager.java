@@ -24,7 +24,6 @@ import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.wm.app.b2b.server.Service;
 import com.wm.app.b2b.server.ServiceThread;
 import com.wm.app.b2b.server.Session;
@@ -40,8 +39,7 @@ import com.wm.lang.ns.NSName;
  */
 public class ReactiveServiceThreadManager {
 
-	private static final Logger LOG = Logger
-			.getLogger(ReactiveServiceThreadManager.class);
+	private static final Logger LOG = Logger.getLogger(ReactiveServiceThreadManager.class);
 	private static ReactiveServiceThreadManager INSTANCE;
 	private Map<String, ISThreadPoolExecutor> executors;
 	private static final long SHUTDOWN_TIMEOUT = 1;
@@ -59,27 +57,39 @@ public class ReactiveServiceThreadManager {
 		return INSTANCE;
 	}
 
-	private ISThreadPoolExecutor getExecutor(String pool)
-			throws ThreadException {
+	private ISThreadPoolExecutor getExecutor(String pool) throws ThreadException {
 		if (isPoolExists(pool)) {
 			return executors.get(pool);
 		} else {
-			throw new ThreadException(
-					"Exception while retrieving a thread pool: " + pool
-							+ " not defined");
+			throw new ThreadException("Exception while retrieving a thread pool: " + pool + " not defined");
 		}
 	}
 
-	public ServiceThread createServiceThread(String service, IData input,
-			int threadPriority, boolean interruptable) {
-		return createServiceThread(service, input, Service.getSession(),
-				threadPriority, interruptable);
+	public ServiceThread createServiceThread(String service, IData input, int threadPriority, boolean interruptable) {
+		return createServiceThread(service, input, Service.getSession(), threadPriority, interruptable);
 	}
 
-	public ServiceThread createServiceThread(String service, IData input,
-			Session session, int threadPriority, boolean interruptable) {
-		return new ReactiveServiceThread(NSName.create(service), session,
-				input, threadPriority, interruptable);
+	public ServiceThread createServiceThread(String service, IData input, Session session, int threadPriority,
+			boolean interruptable) {
+		return new ReactiveServiceThread(NSName.create(service), session, input, threadPriority, interruptable);
+	}
+
+	public ISThreadPoolExecutor getParent(String poolName) {
+		int pos = poolName.lastIndexOf(".");
+
+		if (pos == -1) {
+			return null;
+		}
+
+		String parent = poolName.substring(0, pos);
+
+		ISThreadPoolExecutor exec = executors.get(parent);
+
+		if (exec == null) {
+			return getParent(parent);
+		}
+
+		return exec;
 	}
 
 	public boolean isPoolExists(String pool) {
@@ -87,24 +97,19 @@ public class ReactiveServiceThreadManager {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void createPool(String pool, int poolSize, ThreadFactory factory,
-			ThreadExecutable executable) {
+	public void createPool(String pool, int poolSize, ThreadFactory factory, ThreadExecutable executable) {
 		if (!executors.containsKey(pool)) {
-			executors.put(pool, new ISThreadPoolExecutor(poolSize, poolSize,
-					0L, TimeUnit.SECONDS, new PriorityBlockingQueue(poolSize,
-							new ListenableFutureTaskComparator()), factory,
-					executable));
+			executors.put(pool, new ISThreadPoolExecutor(pool, poolSize, poolSize, 0L, TimeUnit.SECONDS,
+					new PriorityBlockingQueue(poolSize, new ListenableFutureTaskComparator()), factory, executable));
 		}
 	}
 
-	public String addControllerFailure(String pool,
-			List<Future<IData>> futures, List<ServiceThread> serviceThreads)
+	public String addControllerFailure(String pool, List<Future<IData>> futures, List<ServiceThread> serviceThreads)
 			throws ThreadException {
 		ControllerManager manager = ControllerManager.getInstance();
 		String controller = manager.addController(serviceThreads, futures);
 
-		ControllerCallback<IData> controllerCallback = new CancelController<IData>(
-				controller);
+		ControllerCallback<IData> controllerCallback = new CancelController<IData>(controller);
 		for (Future<IData> future : futures) {
 			ListenableFuture<IData> listenable = (ListenableFuture<IData>) future;
 			Futures.addCallback(listenable, controllerCallback);
@@ -113,77 +118,65 @@ public class ReactiveServiceThreadManager {
 		return controller;
 	}
 
-	public ListenableFuture<IData> chain(String pool,
-			ListenableFuture<IData> future, String service, IData input,
+	public ListenableFuture<IData> chain(String pool, ListenableFuture<IData> future, String service, IData input,
 			Integer threadPriority, boolean merge, boolean interruptable) throws ThreadException {
 		ISThreadPoolExecutor ex = getExecutor(pool);
 
-		AsyncFunction<IData, IData> callback = new ReactiveAsyncFunction(ex,
-				service, input, threadPriority, merge, Service.getSession()
-						.getSessionID(), interruptable);
+		AsyncFunction<IData, IData> callback = new ReactiveAsyncFunction(ex, service, input, threadPriority, merge,
+				Service.getSession().getSessionID(), interruptable);
 
 		return Futures.transform(future, callback);
 	}
 
-	public ListenableFuture<IData> chain(String pool,
-			ListenableFuture<IData> future, String service, IData input,
-			Integer threadPriority, boolean merge, boolean interruptable, String errService,
-			IData errInput, Integer errThreadPriority, boolean errInterruptable) throws ThreadException {
+	public ListenableFuture<IData> chain(String pool, ListenableFuture<IData> future, String service, IData input,
+			Integer threadPriority, boolean merge, boolean interruptable, String errService, IData errInput,
+			Integer errThreadPriority, boolean errInterruptable) throws ThreadException {
 		ISThreadPoolExecutor ex = getExecutor(pool);
 
 		String session = Service.getSession().getSessionID();
 
-		AsyncFunction<IData, IData> chain = new ReactiveAsyncFunction(ex,
-				service, input, threadPriority, merge, session, interruptable);
-		FutureCallback<IData> callback = new FailureCallback<IData>(ex,
-				errService, errInput, errThreadPriority, session, errInterruptable);
+		AsyncFunction<IData, IData> chain = new ReactiveAsyncFunction(ex, service, input, threadPriority, merge,
+				session, interruptable);
+		FutureCallback<IData> callback = new FailureCallback<IData>(ex, errService, errInput, errThreadPriority,
+				session, errInterruptable);
 
 		Futures.addCallback(future, callback);
 		return Futures.transform(future, chain);
 	}
 
-	public ListenableFuture<IData> submit(String pool, String service,
-			IData input, Integer threadPriority, boolean interruptable)
-			throws ThreadException {
-		return submit(
-				pool,
-				createServiceThread(service, input, threadPriority,
-						interruptable));
+	public ListenableFuture<IData> submit(String pool, String service, IData input, Integer threadPriority,
+			boolean interruptable) throws ThreadException {
+		return submit(pool, createServiceThread(service, input, threadPriority, interruptable));
 	}
 
-	public ListenableFuture<IData> submit(String pool,
-			ServiceThread serviceThread) throws ThreadException {
+	public ListenableFuture<IData> submit(String pool, ServiceThread serviceThread) throws ThreadException {
 		ISThreadPoolExecutor ex = getExecutor(pool);
 
 		return (ListenableFuture<IData>) submit(ex, serviceThread);
 	}
 
 	@SuppressWarnings("unchecked")
-	public ListenableFuture<IData> submit(ISThreadPoolExecutor executor,
-			ServiceThread serviceThread) throws ThreadException {
+	public ListenableFuture<IData> submit(ISThreadPoolExecutor executor, ServiceThread serviceThread)
+			throws ThreadException {
 
 		return (ListenableFuture<IData>) executor.submit(serviceThread, false);
 	}
 
 	@SuppressWarnings("unchecked")
-	ListenableFuture<IData> submitController(ISThreadPoolExecutor executor,
-			Runnable runnable) throws ThreadException {
+	ListenableFuture<IData> submitController(ISThreadPoolExecutor executor, Runnable runnable) throws ThreadException {
 
 		return (ListenableFuture<IData>) executor.submit(runnable, true);
 	}
 
-	public void changePoolSize(String pool, int poolSize)
-			throws ThreadException {
+	public void changePoolSize(String pool, int poolSize) throws ThreadException {
 		ISThreadPoolExecutor ex = getExecutor(pool);
 
 		ex.setCorePoolSize(poolSize);
 	}
 
-	public void wait(List<Future<IData>> futures, long timeout,
-			TimeUnit timeUnit, boolean failfast) throws ThreadException,
-			TimeoutException, FailfastException {
-		long max = System.currentTimeMillis()
-				+ TimeUnit.MILLISECONDS.convert(timeout, timeUnit);
+	public void wait(List<Future<IData>> futures, long timeout, TimeUnit timeUnit, boolean failfast)
+			throws ThreadException, TimeoutException, FailfastException {
+		long max = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(timeout, timeUnit);
 
 		if (futures == null || futures.size() == 0) {
 			return;
@@ -194,24 +187,21 @@ public class ReactiveServiceThreadManager {
 			if (current >= max) {
 				throw new TimeoutException("Timeout exception");
 			}
-			
+
 			try {
-				Futures.get(future, max - current, TimeUnit.MILLISECONDS,
-						ExecutionException.class);
+				Futures.get(future, max - current, TimeUnit.MILLISECONDS, ExecutionException.class);
 			} catch (ExecutionException e) {
 				if (e.getCause() instanceof TimeoutException) {
 					for (Future<IData> f : futures) {
 						ListenableFutureTask<IData> lf = (ListenableFutureTask<IData>) f;
-						ReactiveServiceThread ast = (ReactiveServiceThread) lf
-								.getRunnable();
+						ReactiveServiceThread ast = (ReactiveServiceThread) lf.getRunnable();
 						ast.cancel();
 					}
 
 					throw new TimeoutException("Timeout exception");
 				} else {
 					if (failfast) {
-						throw new FailfastException(e.getCause().getMessage(),
-								e.getCause());
+						throw new FailfastException(e.getCause().getMessage(), e.getCause());
 					}
 				}
 			} catch (Exception e) {
@@ -221,8 +211,7 @@ public class ReactiveServiceThreadManager {
 	}
 
 	public void shutdown() {
-		for (Map.Entry<String, ISThreadPoolExecutor> entry : executors
-				.entrySet()) {
+		for (Map.Entry<String, ISThreadPoolExecutor> entry : executors.entrySet()) {
 			try {
 				closePool(entry.getKey(), SHUTDOWN_TIMEOUT, SHUTDOWN_TIMEUNIT);
 			} catch (Exception e) {
@@ -231,8 +220,7 @@ public class ReactiveServiceThreadManager {
 		}
 	}
 
-	public void closePool(String pool, Long timeout, TimeUnit timeUnit)
-			throws ThreadException {
+	public void closePool(String pool, Long timeout, TimeUnit timeUnit) throws ThreadException {
 
 		ISThreadPoolExecutor ex = getExecutor(pool);
 
@@ -243,8 +231,7 @@ public class ReactiveServiceThreadManager {
 				ex.shutdownNow();
 			}
 		} catch (InterruptedException e1) {
-			throw new ThreadException("Shutdown interruption: "
-					+ e1.getMessage());
+			throw new ThreadException("Shutdown interruption: " + e1.getMessage());
 		} finally {
 			try {
 				executors.remove(pool);
@@ -260,8 +247,7 @@ public class ReactiveServiceThreadManager {
 		sb.append("{");
 		int size = executors.size();
 		int i = 0;
-		for (Map.Entry<String, ISThreadPoolExecutor> entry : executors
-				.entrySet()) {
+		for (Map.Entry<String, ISThreadPoolExecutor> entry : executors.entrySet()) {
 			sb.append("\"").append(entry.getKey()).append("\":");
 
 			ISThreadPoolExecutor ex = entry.getValue();
@@ -270,8 +256,7 @@ public class ReactiveServiceThreadManager {
 			} else {
 				ex.getActiveCount();
 				ex.getCorePoolSize();
-				sb.append("{\"corePoolSize\":").append(ex.getCorePoolSize())
-						.append(",\"activeCount\":")
+				sb.append("{\"corePoolSize\":").append(ex.getCorePoolSize()).append(",\"activeCount\":")
 						.append(ex.getActiveCount()).append("}");
 			}
 
