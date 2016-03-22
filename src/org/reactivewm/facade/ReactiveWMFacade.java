@@ -22,6 +22,9 @@ import com.wm.app.b2b.server.ServiceThread;
 import com.wm.app.b2b.server.ThreadManager;
 import com.wm.control.ControlException;
 import com.wm.data.IData;
+import com.wm.data.IDataCursor;
+import com.wm.data.IDataFactory;
+import com.wm.data.IDataUtil;
 
 /**
  * Main client class offering a facade of all ReactiveWM capabilities
@@ -244,4 +247,27 @@ public class ReactiveWMFacade {
 				.getInstance();
 		return manager.introspect();
 	}
+	
+	public static IData introspect(String pool) {
+		ReactiveServiceThreadManager manager = ReactiveServiceThreadManager
+				.getInstance();
+		String s = manager.introspect(pool);
+		
+		if(s != null) {
+			String[] n = s.split(";");
+			if(n.length == 2) {
+				IData id = IDataFactory.create();
+				IDataCursor idCur = id.getCursor();
+				
+				IDataUtil.put(idCur, "size", n[0]);
+				IDataUtil.put(idCur, "count", n[1]);
+				
+				idCur.destroy();
+				return id;
+			}
+		}
+		
+		return null;
+	}
+	
 }

@@ -221,7 +221,6 @@ public class ReactiveServiceThreadManager {
 	}
 
 	public void closePool(String pool, Long timeout, TimeUnit timeUnit) throws ThreadException {
-
 		ISThreadPoolExecutor ex = getExecutor(pool);
 
 		ex.shutdown();
@@ -266,5 +265,19 @@ public class ReactiveServiceThreadManager {
 		}
 		sb.append("}");
 		return sb.toString();
+	}
+	
+	public String introspect(String pool) {
+		ISThreadPoolExecutor ex = executors.get(pool);
+		
+		if(ex != null) {
+			StringBuilder sb = new StringBuilder();
+			
+			sb.append(ex.getCorePoolSize()).append(";").append(ex.getActiveCount());
+			
+			return sb.toString();
+		} else {
+			return null;
+		}
 	}
 }
