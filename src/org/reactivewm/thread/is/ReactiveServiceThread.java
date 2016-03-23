@@ -1,5 +1,7 @@
 package org.reactivewm.thread.is;
 
+import org.apache.log4j.Logger;
+
 import com.wm.app.b2b.server.ServiceThread;
 import com.wm.app.b2b.server.Session;
 import com.wm.app.b2b.server.ThreadManager;
@@ -14,6 +16,7 @@ import com.wm.lang.ns.NSName;
  * 
  */
 public class ReactiveServiceThread extends ServiceThread {
+	private static final Logger LOG = Logger.getLogger(ReactiveServiceThread.class);
 	private final Object lock = new Object();
 	private boolean cancel;
 	private boolean run;
@@ -56,6 +59,7 @@ public class ReactiveServiceThread extends ServiceThread {
 	}
 
 	public int getThreadPriority() {
+		LOG.debug("Thread priority=" + threadPriority);
 		return threadPriority;
 	}
 

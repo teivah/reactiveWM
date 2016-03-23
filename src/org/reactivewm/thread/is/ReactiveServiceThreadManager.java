@@ -1,7 +1,10 @@
 package org.reactivewm.thread.is;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -19,6 +22,7 @@ import org.reactivewm.exception.FailfastException;
 import org.reactivewm.exception.ThreadException;
 import org.reactivewm.executor.ISThreadPoolExecutor;
 import org.reactivewm.executor.ThreadExecutable;
+import org.reactivewm.executor.VolatileISThreadPoolExecutor;
 
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FutureCallback;
@@ -65,6 +69,28 @@ public class ReactiveServiceThreadManager {
 		}
 	}
 
+	public boolean isPoolTemporary(String pool) throws ThreadException {
+		ISThreadPoolExecutor ex = getExecutor(pool);
+
+		return ex instanceof VolatileISThreadPoolExecutor;
+	}
+
+	public ServiceThread createServiceThread(String pool, String service, IData input, String ref,
+			boolean interruptable) throws ThreadException {
+		ISThreadPoolExecutor ex = getExecutor(pool);
+
+		if (ex instanceof VolatileISThreadPoolExecutor) {
+			VolatileISThreadPoolExecutor vol = (VolatileISThreadPoolExecutor) ex;
+
+			int priority = vol.getPriority(ref);
+
+			return createServiceThread(service, input, Service.getSession(), priority, interruptable);
+		} else {
+			throw new IllegalStateException(
+					"The creation of ServiceThread using a priority reference is only possible within volatile thread pool");
+		}
+	}
+
 	public ServiceThread createServiceThread(String service, IData input, int threadPriority, boolean interruptable) {
 		return createServiceThread(service, input, Service.getSession(), threadPriority, interruptable);
 	}
@@ -83,13 +109,17 @@ public class ReactiveServiceThreadManager {
 
 		String parent = poolName.substring(0, pos);
 
-		ISThreadPoolExecutor exec = executors.get(parent);
+		try {
+			ISThreadPoolExecutor ex = executors.get(parent);
 
-		if (exec == null) {
-			return getParent(parent);
+			if (ex == null) {
+				return getParent(parent);
+			}
+
+			return ex;
+		} catch (Exception e) {
+			return null;
 		}
-
-		return exec;
 	}
 
 	public boolean isPoolExists(String pool) {
@@ -97,10 +127,34 @@ public class ReactiveServiceThreadManager {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void createPool(String pool, int poolSize, ThreadFactory factory, ThreadExecutable executable) {
+	public void createPool(String pool, int poolSize, ThreadFactory factory, ThreadExecutable executable,
+			boolean temporary, Date limit, boolean atomic) {
+
+		if (atomic && !temporary) {
+			throw new IllegalStateException("An atomic thread pool must be volatile");
+		}
+
 		if (!executors.containsKey(pool)) {
-			executors.put(pool, new ISThreadPoolExecutor(pool, poolSize, poolSize, 0L, TimeUnit.SECONDS,
-					new PriorityBlockingQueue(poolSize, new ListenableFutureTaskComparator()), factory, executable));
+			LOG.debug("Create pool " + pool);
+			if (temporary) {
+				executors.put(pool,
+						new VolatileISThreadPoolExecutor(pool, limit, poolSize, poolSize, 0L, TimeUnit.SECONDS,
+								new PriorityBlockingQueue(poolSize, new ListenableFutureTaskComparator()), factory,
+								executable, atomic));
+			} else {
+				executors.put(pool,
+						new ISThreadPoolExecutor(pool, poolSize, poolSize, 0L, TimeUnit.SECONDS,
+								new PriorityBlockingQueue(poolSize, new ListenableFutureTaskComparator()), factory,
+								executable));
+			}
+		} else {
+			if(atomic) {
+				ISThreadPoolExecutor ex = executors.get(pool);
+				if(ex instanceof VolatileISThreadPoolExecutor) {
+					VolatileISThreadPoolExecutor vol = (VolatileISThreadPoolExecutor) ex; 
+					vol.updateLimit(limit);
+				}
+			}
 		}
 	}
 
@@ -119,7 +173,62 @@ public class ReactiveServiceThreadManager {
 	}
 
 	public ListenableFuture<IData> chain(String pool, ListenableFuture<IData> future, String service, IData input,
+			String ref, boolean merge, boolean interruptable) throws ThreadException {
+		if (future == null) {
+			return null;
+		}
+
+		ISThreadPoolExecutor ex = getExecutor(pool);
+
+		if (ex instanceof VolatileISThreadPoolExecutor) {
+			VolatileISThreadPoolExecutor vol = (VolatileISThreadPoolExecutor) ex;
+			int priority = vol.getPriority(ref);
+			AsyncFunction<IData, IData> callback = new ReactiveAsyncFunction(ex, service, input, priority, merge,
+					Service.getSession().getSessionID(), interruptable);
+
+			return Futures.transform(future, callback);
+		} else {
+			throw new IllegalStateException(
+					"The creation of ServiceThread using a priority reference is only possible within volatile thread pool");
+		}
+	}
+
+	public ListenableFuture<IData> chain(String pool, ListenableFuture<IData> future, String service, IData input,
+			String ref, boolean merge, boolean interruptable, String errService, IData errInput, String errRef,
+			boolean errInterruptable) throws ThreadException {
+		if (future == null) {
+			return null;
+		}
+
+		ISThreadPoolExecutor ex = getExecutor(pool);
+
+		if (ex instanceof VolatileISThreadPoolExecutor) {
+			VolatileISThreadPoolExecutor vol = (VolatileISThreadPoolExecutor) ex;
+			int priority = vol.getPriority(ref);
+
+			String session = Service.getSession().getSessionID();
+
+			AsyncFunction<IData, IData> chain = new ReactiveAsyncFunction(ex, service, input, priority, merge, session,
+					interruptable);
+
+			priority = vol.getPriority(errRef);
+			FutureCallback<IData> callback = new FailureCallback<IData>(ex, errService, errInput, priority, session,
+					errInterruptable);
+
+			Futures.addCallback(future, callback);
+			return Futures.transform(future, chain);
+		} else {
+			throw new IllegalStateException(
+					"The creation of ServiceThread using a priority reference is only possible within volatile thread pool");
+		}
+	}
+
+	public ListenableFuture<IData> chain(String pool, ListenableFuture<IData> future, String service, IData input,
 			Integer threadPriority, boolean merge, boolean interruptable) throws ThreadException {
+		if (future == null) {
+			return null;
+		}
+
 		ISThreadPoolExecutor ex = getExecutor(pool);
 
 		AsyncFunction<IData, IData> callback = new ReactiveAsyncFunction(ex, service, input, threadPriority, merge,
@@ -131,6 +240,10 @@ public class ReactiveServiceThreadManager {
 	public ListenableFuture<IData> chain(String pool, ListenableFuture<IData> future, String service, IData input,
 			Integer threadPriority, boolean merge, boolean interruptable, String errService, IData errInput,
 			Integer errThreadPriority, boolean errInterruptable) throws ThreadException {
+		if (future == null) {
+			return null;
+		}
+
 		ISThreadPoolExecutor ex = getExecutor(pool);
 
 		String session = Service.getSession().getSessionID();
@@ -142,11 +255,6 @@ public class ReactiveServiceThreadManager {
 
 		Futures.addCallback(future, callback);
 		return Futures.transform(future, chain);
-	}
-
-	public ListenableFuture<IData> submit(String pool, String service, IData input, Integer threadPriority,
-			boolean interruptable) throws ThreadException {
-		return submit(pool, createServiceThread(service, input, threadPriority, interruptable));
 	}
 
 	public ListenableFuture<IData> submit(String pool, ServiceThread serviceThread) throws ThreadException {
@@ -188,6 +296,10 @@ public class ReactiveServiceThreadManager {
 				throw new TimeoutException("Timeout exception");
 			}
 
+			if(future == null) {
+				continue;
+			}
+			
 			try {
 				Futures.get(future, max - current, TimeUnit.MILLISECONDS, ExecutionException.class);
 			} catch (ExecutionException e) {
@@ -210,6 +322,27 @@ public class ReactiveServiceThreadManager {
 		}
 	}
 
+	public void startup(long frequency) {
+		new Timer().scheduleAtFixedRate(new TimerTask() {
+			@Override
+			public void run() {
+				for (Map.Entry<String, ISThreadPoolExecutor> entry : executors.entrySet()) {
+					try {
+						String pool = entry.getKey();
+						if (isPoolTemporary(pool)) {
+							VolatileISThreadPoolExecutor vol = (VolatileISThreadPoolExecutor) entry.getValue();
+							if (vol.isLimitReached()) {
+								closePool(pool, 60l, TimeUnit.SECONDS);
+							}
+						}
+					} catch (ThreadException e) {
+						LOG.error("IS pool " + entry.getKey() + " does not exist");
+					}
+				}
+			}
+		}, 0, frequency);
+	}
+
 	public void shutdown() {
 		for (Map.Entry<String, ISThreadPoolExecutor> entry : executors.entrySet()) {
 			try {
@@ -222,6 +355,8 @@ public class ReactiveServiceThreadManager {
 
 	public void closePool(String pool, Long timeout, TimeUnit timeUnit) throws ThreadException {
 		ISThreadPoolExecutor ex = getExecutor(pool);
+
+		LOG.info("Closing " + pool + " pool");
 
 		ex.shutdown();
 
@@ -266,15 +401,15 @@ public class ReactiveServiceThreadManager {
 		sb.append("}");
 		return sb.toString();
 	}
-	
+
 	public String introspect(String pool) {
 		ISThreadPoolExecutor ex = executors.get(pool);
-		
-		if(ex != null) {
+
+		if (ex != null) {
 			StringBuilder sb = new StringBuilder();
-			
+
 			sb.append(ex.getCorePoolSize()).append(";").append(ex.getActiveCount());
-			
+
 			return sb.toString();
 		} else {
 			return null;

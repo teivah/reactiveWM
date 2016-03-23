@@ -2051,7 +2051,7 @@ public class ISThreadPoolExecutor extends AbstractExecutorService {
 
 	protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, boolean controller, T value) {
 		return ListenableFutureTask.create(runnable, controller,
-				value);
+				value, null);
 	}
     /* reactiveWM: change stop */
 }

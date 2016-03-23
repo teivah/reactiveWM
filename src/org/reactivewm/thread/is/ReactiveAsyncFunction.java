@@ -1,5 +1,6 @@
 package org.reactivewm.thread.is;
 
+import org.apache.log4j.Logger;
 import org.reactivewm.executor.ISThreadPoolExecutor;
 
 import com.google.common.util.concurrent.AsyncFunction;
@@ -15,7 +16,7 @@ import com.wm.data.IDataUtil;
  *
  */
 public class ReactiveAsyncFunction implements AsyncFunction<IData, IData> {
-
+	private static final Logger LOG = Logger.getLogger(ReactiveAsyncFunction.class);
 	private ISThreadPoolExecutor executor;
 	private String service;
 	private boolean merge;
@@ -35,7 +36,8 @@ public class ReactiveAsyncFunction implements AsyncFunction<IData, IData> {
 	}
 
 	@Override
-	public ListenableFuture<IData> apply(IData response) throws Exception {		
+	public ListenableFuture<IData> apply(IData response) throws Exception {
+		LOG.debug("ReactiveAsyncFunction apply: " + threadPriority);
 		if(merge) {
 			if(input == null) {
 				input = IDataUtil.clone(response);
