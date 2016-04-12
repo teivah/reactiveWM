@@ -1014,7 +1014,9 @@ public class ISThreadPoolExecutor extends AbstractExecutorService {
                 if (workerCountOf(c) >= min)
                     return; // replacement not needed
             }
-            addWorker(null, false);
+            if(keepAlive) {
+            	addWorker(null, false);
+            }
         }
     }
 
@@ -1134,6 +1136,9 @@ public class ISThreadPoolExecutor extends AbstractExecutorService {
                     try {
                     	/* reactiveWM: change start */
                     	executable.execute(task, this.poolName);
+                    	if(!keepAlive) {
+                    		break;
+                    	}
                         /* reactiveWM: change stop */
                     } catch (RuntimeException x) {
                         thrown = x; throw x;
@@ -1221,12 +1226,14 @@ public class ISThreadPoolExecutor extends AbstractExecutorService {
                               long keepAliveTime,
                               TimeUnit unit,
                               BlockingQueue<Runnable> workQueue,
-                              ThreadFactory threadFactory, ThreadExecutable executable) {
+                              ThreadFactory threadFactory, ThreadExecutable executable, boolean keepAlive) {
         this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
              threadFactory, defaultHandler, executable);
         this.poolName = poolName;
+        this.keepAlive = keepAlive;
     }
     private String poolName;
+    private boolean keepAlive;
 
     /**
      * Creates a new {@code ThreadPoolExecutor} with the given initial

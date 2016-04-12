@@ -11,7 +11,7 @@ import com.wm.data.IData;
 
 public class ISThreadExecutable implements ThreadExecutable {
 
-	private static final long THREAD_ALLOCATION_TIMEOUT = 600000l;
+	private static final long THREAD_ALLOCATION_TIMEOUT = 60000l;
 
 	@SuppressWarnings("unchecked")
 	@Override

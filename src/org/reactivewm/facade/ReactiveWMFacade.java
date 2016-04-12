@@ -76,16 +76,16 @@ public class ReactiveWMFacade {
 		}
 	}
 
-	public static boolean createPool(String pool, int poolSize, boolean temporary, Date limit, boolean atomic) {
-		return createPool(pool, poolSize, new ISThreadFactory(), temporary, limit, atomic);
+	public static boolean createPool(String pool, int poolSize, boolean temporary, Date limit, boolean atomic, boolean keepAlive) {
+		return createPool(pool, poolSize, new ISThreadFactory(), temporary, limit, atomic, keepAlive);
 	}
 
-	public static boolean createPool(String pool, int poolSize, ThreadFactory factory, boolean temporary, Date limit, boolean atomic) {
-		return createPool(pool, poolSize, factory, new ISThreadExecutable(), temporary, limit, atomic);
+	public static boolean createPool(String pool, int poolSize, ThreadFactory factory, boolean temporary, Date limit, boolean atomic, boolean keepAlive) {
+		return createPool(pool, poolSize, factory, new ISThreadExecutable(), temporary, limit, atomic, keepAlive);
 	}
 
 	public static boolean createPool(String pool, int poolSize, ThreadFactory factory, ThreadExecutable executable,
-			boolean temporary, Date limit, boolean atomic) {
+			boolean temporary, Date limit, boolean atomic, boolean keepAlive) {
 		if (pool == null || "".equals(pool)) {
 			throw new IllegalArgumentException("Pool name empty");
 		}
@@ -94,7 +94,7 @@ public class ReactiveWMFacade {
 
 		ReactiveServiceThreadManager manager = ReactiveServiceThreadManager.getInstance();
 		if (!manager.isPoolExists(pool)) {
-			manager.createPool(pool, poolSize, factory, executable, temporary, limit, atomic);
+			manager.createPool(pool, poolSize, factory, executable, temporary, limit, atomic, keepAlive);
 			return true;
 		}
 

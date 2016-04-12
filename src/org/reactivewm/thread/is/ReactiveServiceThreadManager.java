@@ -128,7 +128,7 @@ public class ReactiveServiceThreadManager {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void createPool(String pool, int poolSize, ThreadFactory factory, ThreadExecutable executable,
-			boolean temporary, Date limit, boolean atomic) {
+			boolean temporary, Date limit, boolean atomic, boolean keepAlive) {
 
 		if (atomic && !temporary) {
 			throw new IllegalStateException("An atomic thread pool must be volatile");
@@ -145,7 +145,7 @@ public class ReactiveServiceThreadManager {
 				executors.put(pool,
 						new ISThreadPoolExecutor(pool, poolSize, poolSize, 0L, TimeUnit.SECONDS,
 								new PriorityBlockingQueue(poolSize, new ListenableFutureTaskComparator()), factory,
-								executable));
+								executable, keepAlive));
 			}
 		} else {
 			if(atomic) {
@@ -388,8 +388,6 @@ public class ReactiveServiceThreadManager {
 			if (ex == null) {
 				sb.append("null");
 			} else {
-				ex.getActiveCount();
-				ex.getCorePoolSize();
 				sb.append("{\"corePoolSize\":").append(ex.getCorePoolSize()).append(",\"activeCount\":")
 						.append(ex.getActiveCount()).append("}");
 			}
