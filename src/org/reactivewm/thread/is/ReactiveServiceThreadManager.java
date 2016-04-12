@@ -140,7 +140,7 @@ public class ReactiveServiceThreadManager {
 				executors.put(pool,
 						new VolatileISThreadPoolExecutor(pool, limit, poolSize, poolSize, 0L, TimeUnit.SECONDS,
 								new PriorityBlockingQueue(poolSize, new ListenableFutureTaskComparator()), factory,
-								executable, atomic));
+								executable, atomic, keepAlive));
 			} else {
 				executors.put(pool,
 						new ISThreadPoolExecutor(pool, poolSize, poolSize, 0L, TimeUnit.SECONDS,
