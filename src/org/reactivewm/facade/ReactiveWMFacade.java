@@ -76,16 +76,16 @@ public class ReactiveWMFacade {
 		}
 	}
 
-	public static boolean createPool(String pool, int poolSize, boolean temporary, Date limit, boolean atomic, boolean keepAlive) {
+	public static boolean createPool(String pool, int poolSize, boolean temporary, Date limit, boolean atomic, long keepAlive) {
 		return createPool(pool, poolSize, new ISThreadFactory(), temporary, limit, atomic, keepAlive);
 	}
 
-	public static boolean createPool(String pool, int poolSize, ThreadFactory factory, boolean temporary, Date limit, boolean atomic, boolean keepAlive) {
+	public static boolean createPool(String pool, int poolSize, ThreadFactory factory, boolean temporary, Date limit, boolean atomic, long keepAlive) {
 		return createPool(pool, poolSize, factory, new ISThreadExecutable(), temporary, limit, atomic, keepAlive);
 	}
 
 	public static boolean createPool(String pool, int poolSize, ThreadFactory factory, ThreadExecutable executable,
-			boolean temporary, Date limit, boolean atomic, boolean keepAlive) {
+			boolean temporary, Date limit, boolean atomic, long keepAlive) {
 		if (pool == null || "".equals(pool)) {
 			throw new IllegalArgumentException("Pool name empty");
 		}

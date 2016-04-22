@@ -26,8 +26,8 @@ public final class VolatileISThreadPoolExecutor extends ISThreadPoolExecutor {
 
 	public VolatileISThreadPoolExecutor(String poolName, Date limit, int corePoolSize, int maximumPoolSize,
 			long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory,
-			ThreadExecutable executable, boolean atomic, boolean keepAlive) {
-		super(poolName, corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, executable, keepAlive);
+			ThreadExecutable executable, boolean atomic) {
+		super(poolName, corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, executable);
 		LOG.debug("Volatile creation: " + poolName);
 		if (limit == null) {
 			throw new NullPointerException("Limit date is null");
