@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Values version="2.0">
+  <value name="name">createPool</value>
+  <value name="encodeutf8">true</value>
+  <value name="body">SURhdGFDdXJzb3IgcGlwZWxpbmVDdXIgPSBwaXBlbGluZS5nZXRDdXJzb3IoKTsNCg0KdHJ5IHsN
+CgkNCglTdHJpbmcgcG9vbCA9IElEYXRhVXRpbC5nZXRTdHJpbmcocGlwZWxpbmVDdXIsICJwb29s
+Iik7DQoJDQoJU3RyaW5nIHNQb29sU2l6ZSA9IElEYXRhVXRpbC5nZXRTdHJpbmcocGlwZWxpbmVD
+dXIsICJwb29sU2l6ZSIpOw0KCWludCBwb29sU2l6ZSA9IEludGVnZXIudmFsdWVPZihzUG9vbFNp
+emUpOw0KCQ0KCWlmKHBvb2xTaXplIDw9IDApIHsNCgkJdGhyb3cgbmV3IFNlcnZpY2VFeGNlcHRp
+b24oIm1heFRocmVhZHMgdmFsdWUgbXVzdCBiZSBwb3NpdGl2ZSIpOw0KCX0gZWxzZSBpZihwb29s
+U2l6ZSA+IE1BWF9USFJFQURTKSB7DQoJCXBvb2xTaXplID0gTUFYX1RIUkVBRFM7DQoJfQ0KCQ0K
+CVJlYWN0aXZlV01GYWNhZGUuY3JlYXRlUG9vbChwb29sLCBwb29sU2l6ZSk7DQoJDQp9IGNhdGNo
+KEV4Y2VwdGlvbiBlKSB7DQoJdGhyb3cgbmV3IFNlcnZpY2VFeGNlcHRpb24oZSk7DQp9IGZpbmFs
+bHkgew0KCWlmKHBpcGVsaW5lQ3VyICE9IG51bGwpIHsNCgkJcGlwZWxpbmVDdXIuZGVzdHJveSgp
+Ow0KCX0NCn0=</value>
+</Values>

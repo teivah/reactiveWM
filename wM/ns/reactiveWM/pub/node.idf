@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Values version="2.0">
+  <value name="node_type">interface</value>
+  <value name="node_nsName">reactiveWM.pub</value>
+  <value name="is_public">false</value>
+  <value name="shared">CnByaXZhdGUgc3RhdGljIGludCBnZXRQcmlvcml0eShTdHJpbmcgc1ByaW9yaXR5KSB0aHJvd3Mg
+U2VydmljZUV4Y2VwdGlvbiB7CglpbnQgcHJpb3JpdHkgPSBSZWFjdGl2ZVdNRmFjYWRlLk1JRF9Q
+UklPUklUWTsKCWlmKHNQcmlvcml0eSAhPSBudWxsIHx8ICEiIi5lcXVhbHMoc1ByaW9yaXR5KSkg
+ewoJCXByaW9yaXR5ID0gSW50ZWdlci52YWx1ZU9mKHNQcmlvcml0eSk7CgkJaWYocHJpb3JpdHkg
+PCBSZWFjdGl2ZVdNRmFjYWRlLk1JTl9QUklPUklUWSkgewoJCQl0aHJvdyBuZXcgU2VydmljZUV4
+Y2VwdGlvbigiUHJpb3JpdHkgbXVzdCBiZSBoaWdoZXIgdGhhbiAiICsgUmVhY3RpdmVXTUZhY2Fk
+ZS5NSU5fUFJJT1JJVFkpOwoJCX0KCQlpZihwcmlvcml0eSA+IFJlYWN0aXZlV01GYWNhZGUuTUFY
+X1BSSU9SSVRZKSB7CgkJCXRocm93IG5ldyBTZXJ2aWNlRXhjZXB0aW9uKCJQcmlvcml0eSBtdXN0
+IGJlIGxvd2VyIHRoYW4gIiArIFJlYWN0aXZlV01GYWNhZGUuTUFYX1BSSU9SSVRZKTsKCQl9Cgl9
+CglyZXR1cm4gcHJpb3JpdHk7Cn0KCnByaXZhdGUgc3RhdGljIGxvbmcgcGFyc2VEdXJhdGlvblRp
+bWVvdXQoSURhdGFDdXJzb3IgY3Vyc29yKSB0aHJvd3MgU2VydmljZUV4Y2VwdGlvbiB7CglTdHJp
+bmcgcyA9IElEYXRhVXRpbC5nZXRTdHJpbmcoY3Vyc29yLCAiZHVyYXRpb24iKTsKCWlmKHMgPT0g
+bnVsbCB8fCAiIi5lcXVhbHMocykpIHsKCQl0aHJvdyBuZXcgU2VydmljZUV4Y2VwdGlvbigiVGlt
+ZW91dCBub3Qgc2V0Iik7CQoJfQkJCQoJcmV0dXJuIExvbmcudmFsdWVPZihzKTsKfQoKcHJpdmF0
+ZSBzdGF0aWMgVGltZVVuaXQgcGFyc2VUaW1lVW5pdFRpbWVvdXQoSURhdGFDdXJzb3IgY3Vyc29y
+KSB0aHJvd3MgU2VydmljZUV4Y2VwdGlvbiB7CglTdHJpbmcgcyA9IElEYXRhVXRpbC5nZXRTdHJp
+bmcoY3Vyc29yLCAidGltZVVuaXQiKTsKCWlmKHMgPT0gbnVsbCB8fCAiIi5lcXVhbHMocykpIHsK
+CQl0aHJvdyBuZXcgU2VydmljZUV4Y2VwdGlvbigiVGltZW91dCBub3Qgc2V0Iik7CQoJfQoJcmV0
+dXJuIFRpbWVVbml0LnZhbHVlT2Yocyk7Cn0KCnByaXZhdGUgc3RhdGljIGZpbmFsIGludCBNQVhf
+VEhSRUFEUyA9IDEwMDsKCQ==</value>
+  <value name="encodeutf8">true</value>
+  <value name="extends"></value>
+  <array name="implements" type="value" depth="1">
+  </array>
+  <array name="imports" type="value" depth="1">
+    <value>com.wm.control.ControlException</value>
+    <value>com.wm.app.b2b.server.Session</value>
+    <value>com.wm.app.b2b.server.ThreadManager</value>
+    <value>java.util.ArrayList</value>
+    <value>java.util.Collection</value>
+    <value>java.util.ConcurrentModificationException</value>
+    <value>java.util.HashMap</value>
+    <value>java.util.HashSet</value>
+    <value>java.util.Iterator</value>
+    <value>java.util.List</value>
+    <value>java.util.Map</value>
+    <value>java.util.UUID</value>
+    <value>java.util.concurrent.AbstractExecutorService</value>
+    <value>java.util.concurrent.BlockingQueue</value>
+    <value>java.util.concurrent.Callable</value>
+    <value>java.util.concurrent.CancellationException</value>
+    <value>java.util.concurrent.ExecutionException</value>
+    <value>java.util.concurrent.Executor</value>
+    <value>java.util.concurrent.ExecutorService</value>
+    <value>java.util.concurrent.Executors</value>
+    <value>java.util.concurrent.Future</value>
+    <value>java.util.concurrent.FutureTask</value>
+    <value>java.util.concurrent.LinkedBlockingQueue</value>
+    <value>java.util.concurrent.RejectedExecutionException</value>
+    <value>java.util.concurrent.RunnableFuture</value>
+    <value>java.util.concurrent.ThreadFactory</value>
+    <value>java.util.concurrent.TimeUnit</value>
+    <value>java.util.concurrent.TimeoutException</value>
+    <value>java.util.concurrent.atomic.AtomicInteger</value>
+    <value>java.util.concurrent.locks.AbstractQueuedSynchronizer</value>
+    <value>java.util.concurrent.locks.Condition</value>
+    <value>java.util.concurrent.locks.ReentrantLock</value>
+    <value>org.reactivewm.exception.ThreadException</value>
+    <value>org.reactivewm.facade.ReactiveWMFacade</value>
+    <value>com.google.common.util.concurrent.AsyncFunction</value>
+    <value>com.google.common.util.concurrent.ExecutionList</value>
+    <value>com.google.common.util.concurrent.Futures</value>
+    <value>com.google.common.util.concurrent.ListenableFuture</value>
+    <value>com.wm.app.b2b.server.ServiceThread</value>
+    <value>com.wm.data.IData</value>
+    <value>com.wm.data.IDataFactory</value>
+    <value>com.wm.data.IDataUtil</value>
+    <value>com.wm.lang.flow.FlowException</value>
+    <value>com.wm.lang.ns.NSName</value>
+  </array>
+</Values>
