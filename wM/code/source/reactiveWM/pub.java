@@ -1,9 +1,5 @@
 package reactiveWM;
 
-// -----( IS Java Code Template v1.2
-// -----( CREATED: 2015-12-15 10:15:54 CET
-// -----( ON-HOST: QASSNEIP02.ppmail.ppservices.axa-tech.intraxa
-
 import com.wm.data.*;
 import com.wm.util.Values;
 import com.wm.app.b2b.server.Service;
